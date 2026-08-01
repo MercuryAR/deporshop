@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body {
+  @apply font-sans text-gray-900 bg-white antialiased;
+}
+
+img {
+  @apply max-w-full h-auto block;
+}
+
+:focus-visible {
+  @apply outline outline-2 outline-accent outline-offset-2;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap select-none disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-br from-primary to-primary-light text-white shadow-md hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .btn-accent {
+    @apply btn bg-gradient-to-br from-accent to-accent-light text-white shadow-md hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .btn-outline {
+    @apply btn bg-transparent text-primary border-2 border-primary hover:bg-primary hover:text-white;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gray-50 text-gray-900 border border-gray-200 hover:bg-gray-200;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-primary px-4 py-2 hover:bg-gray-50;
+  }
+
+  .btn-error {
+    @apply btn bg-error text-white shadow-md hover:opacity-90;
+  }
+
+  .container-app {
+    @apply w-full max-w-[1400px] mx-auto px-4;
+  }
+
+  .card {
+    @apply bg-white border border-gray-200 rounded-lg p-6 shadow-sm transition-all hover:shadow-md;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    @apply w-full px-4 py-2.5 text-base font-sans border border-gray-200 rounded-lg bg-white text-gray-900 transition-all outline-none focus:border-info focus:ring-2 focus:ring-info/20;
+  }
+
+  .form-label {
+    @apply block mb-2 font-semibold text-gray-900;
+  }
+}

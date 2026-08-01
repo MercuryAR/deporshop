@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: deporshop-api
+    runtime: docker
+    rootDir: back
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/categorias
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
