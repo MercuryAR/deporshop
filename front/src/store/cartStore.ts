@@ -3,8 +3,8 @@ import { persist } from 'zustand/middleware';
 import * as api from '../services/api';
 import type { CarritoItem } from '../types/Carrito';
 
-const ENVIO_GRATIS_DESDE = 50000;
-const COSTO_ENVIO = 3500;
+const ENVIO_GRATIS_DESDE = 150000;
+const COSTO_ENVIO = 6990;
 
 interface CartState {
   items: CarritoItem[];

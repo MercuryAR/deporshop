@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import Carousel from '../components/Carousel';
 import ProductCard from '../components/ProductCard';
 import { useProductStore } from '../store/productStore';
+import { ENVIO_GRATIS_DESDE } from '../store/cartStore';
+import { formatearPrecio } from '../services/api';
 import type { CarouselSlide } from '../components/Carousel';
 
 const FEATURED_SLIDES: CarouselSlide[] = [
@@ -33,7 +35,7 @@ const FEATURED_SLIDES: CarouselSlide[] = [
 ];
 
 const BENEFITS = [
-  { icon: '🚚', title: 'Envío Gratis', text: 'En compras superiores a $50.000' },
+  { icon: '🚚', title: 'Envío Gratis', text: `En compras superiores a ${formatearPrecio(ENVIO_GRATIS_DESDE)}` },
   { icon: '↩️', title: 'Devoluciones fáciles', text: '30 días para cambios y devoluciones' },
   { icon: '🔒', title: 'Compra segura', text: 'Tus datos siempre protegidos' },
   { icon: '⭐', title: 'Calidad garantizada', text: 'Productos seleccionados y verificados' },

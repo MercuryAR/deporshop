@@ -34,40 +34,40 @@ public class DataLoader implements CommandLineRunner {
         categoriaRepository.save(accesorios);
         categoriaRepository.save(ropa);
 
-        // Crear productos de ejemplo
-        Producto p1 = new Producto("Running Max Pro", "Zapatillas para correr con tecnología de amortiguación", 129.99, zapatillas);
+        // Crear productos de ejemplo (precios en pesos argentinos, escala realista)
+        Producto p1 = new Producto("Running Max Pro", "Zapatillas para correr con tecnología de amortiguación", 134999, zapatillas);
         p1.imagenUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop";
         p1.descuento = 10;
         p1.stock = 15;
         p1.rating = 4.5;
         p1.resenas = 42;
 
-        Producto p2 = new Producto("Trail Blazer", "Zapatillas para trail running", 139.99, zapatillas);
+        Producto p2 = new Producto("Trail Blazer", "Zapatillas para trail running", 149999, zapatillas);
         p2.imagenUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop&q=70";
         p2.stock = 20;
         p2.rating = 4.8;
         p2.resenas = 67;
 
-        Producto p3 = new Producto("Court Flex", "Zapatillas para tenis y canchas duras", 99.99, zapatillas);
+        Producto p3 = new Producto("Court Flex", "Zapatillas para tenis y canchas duras", 94999, zapatillas);
         p3.imagenUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop&q=60";
         p3.descuento = 15;
         p3.stock = 25;
         p3.rating = 4.3;
         p3.resenas = 31;
 
-        Producto p4 = new Producto("Mochila deportiva", "Mochila impermeable con compartimientos", 49.99, accesorios);
+        Producto p4 = new Producto("Mochila deportiva", "Mochila impermeable con compartimientos", 42999, accesorios);
         p4.imagenUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop";
         p4.stock = 50;
         p4.rating = 4.6;
         p4.resenas = 28;
 
-        Producto p5 = new Producto("Remera deportiva", "Remera de rendimiento técnico con humedad", 39.99, ropa);
+        Producto p5 = new Producto("Remera deportiva", "Remera de rendimiento técnico con humedad", 24999, ropa);
         p5.imagenUrl = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop";
         p5.stock = 100;
         p5.rating = 4.4;
         p5.resenas = 19;
 
-        Producto p6 = new Producto("Short deportivo", "Short ligero y cómodo para deportes", 44.99, ropa);
+        Producto p6 = new Producto("Short deportivo", "Short ligero y cómodo para deportes", 27999, ropa);
         p6.imagenUrl = "https://images.unsplash.com/photo-1506401543311-27ad1cb34e09?w=400&h=400&fit=crop";
         p6.stock = 80;
         p6.rating = 4.5;

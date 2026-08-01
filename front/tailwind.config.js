@@ -9,8 +9,8 @@ export default {
           light: '#374151',
         },
         accent: {
-          DEFAULT: '#EC4899',
-          light: '#F472B6',
+          DEFAULT: '#EA580C',
+          light: '#FB923C',
         },
         success: '#10B981',
         warning: '#F59E0B',

@@ -71,11 +71,12 @@ export default function Checkout() {
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
       <button
-        className="btn-accent w-full text-lg py-3 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="btn-accent relative overflow-hidden w-full text-lg py-3 disabled:opacity-100 disabled:cursor-not-allowed"
         onClick={handleConfirmar}
         disabled={confirmando}
       >
-        {confirmando ? 'Confirmando...' : 'Confirmar pedido'}
+        {confirmando && <span className="btn-loading-bar" aria-hidden="true" />}
+        <span className="relative">{confirmando ? 'Confirmando...' : 'Confirmar pedido'}</span>
       </button>
     </div>
   );
