@@ -2,6 +2,10 @@
 
 Tienda de zapatillas y accesorios deportivos. Proyecto full-stack con backend REST en Spring Boot (Java) y frontend en React + TypeScript, construido como portfolio.
 
+**Demo en vivo:** [deporshop-frontend.onrender.com](https://deporshop-frontend.onrender.com) · API: [deporshop-api.onrender.com](https://deporshop-api.onrender.com) · [Swagger](https://deporshop-api.onrender.com/swagger-ui/index.html)
+
+> El backend está en el free tier de Render: si nadie lo usó en un rato, el primer request puede tardar ~50 segundos en despertar. Además, la base es H2 en memoria — cada vez que el servicio se redeploya, se borran todos los usuarios y pedidos (ver [Datos de ejemplo](#datos-de-ejemplo)).
+
 ## Stack
 
 **Backend**
@@ -75,36 +79,35 @@ El cliente API apunta a `http://localhost:8080/api` (ver `front/src/services/api
 
 ## Deploy
 
-**Backend en Render** (Docker):
-1. New → Blueprint, apuntar al repo → Render detecta `render.yaml` en la raíz.
-2. Define `JWT_SECRET` automáticamente (`generateValue: true`). Después del primer deploy, setear `CORS_ALLOWED_ORIGINS` con la URL de Netlify (ej: `https://deporshop.netlify.app`).
-3. Alternativa manual: New → Web Service → Docker, root directory `back/`.
+Los dos servicios corren en **Render**, definidos como Blueprint en [`render.yaml`](render.yaml):
 
-**Frontend en Netlify**:
-1. New site from Git, apuntar al repo, base directory `front/`. Netlify lee `front/netlify.toml` (build command, publish dir, redirect SPA).
-2. Env var de build: `VITE_API_BASE_URL=https://<tu-servicio>.onrender.com/api`.
+- **`deporshop-api`** — Web Service, Docker (`back/Dockerfile`). `JWT_SECRET` se genera solo; `CORS_ALLOWED_ORIGINS` hay que setearlo a mano con la URL del frontend.
+- **`deporshop-frontend`** — Static Site (`front/`, `npm run build`, publica `dist/`). Variable de build `VITE_API_BASE_URL` apuntando a la URL de `deporshop-api` + `/api`.
 
-**Orden recomendado:** deployar backend primero (para tener la URL de Render), después el frontend con esa URL en `VITE_API_BASE_URL`, y por último volver a Render para setear `CORS_ALLOWED_ORIGINS` con la URL final de Netlify.
+**Pasos:** New → Blueprint → conectar el repo → Render detecta `render.yaml` y crea ambos servicios. Deployar `deporshop-api` primero (para tener su URL), completar `VITE_API_BASE_URL` en `deporshop-frontend` con esa URL, y por último volver a `deporshop-api` para setear `CORS_ALLOWED_ORIGINS` con la URL final del frontend.
+
+> Nota operativa: en el free tier, el auto-deploy en cada push no siempre se dispara solo — puede hacer falta un **Manual Deploy** desde el dashboard de cada servicio. Si el backend no toma cambios de código después de un deploy que sí figura como "live", probá **"Clear build cache & deploy"** (puede haber cache de Docker desactualizada).
 
 ## Funcionalidades
 
 - Catálogo de productos con filtro por categoría, búsqueda y orden (precio, nombre, rating)
 - Carrito de compras persistido en el backend
 - Registro / login con JWT, rutas protegidas (`/checkout`, `/perfil`)
-- Checkout y perfil de usuario
+- Checkout con creación real de pedidos — el precio se recalcula en el servidor a partir del producto real, nunca se confía en lo que manda el cliente
+- Historial de pedidos en el perfil de usuario
 - Formulario de contacto con validación
 - Documentación interactiva de la API vía Swagger
 
 ## Datos de ejemplo
 
-Al iniciar, el backend carga automáticamente 3 categorías y 6 productos de ejemplo (`config/DataLoader.java`). Al usar H2 en memoria, estos datos se pierden al reiniciar el servidor.
+Al iniciar, el backend carga automáticamente 3 categorías y 6 productos de ejemplo (`config/DataLoader.java`), con precios en pesos argentinos. Al usar H2 en memoria, **estos datos —y cualquier usuario o pedido creado— se pierden cada vez que el servidor se reinicia o redeploya**. Si al hacer checkout en la demo en vivo da error de "usuario no encontrado", es porque el backend se redeployó después de que iniciaste sesión: cerrá sesión, registrate de nuevo y va a funcionar.
 
 ## Próximos pasos
 
-- Tests automatizados (backend y frontend)
-- Gestión de pedidos (checkout real + historial de compras)
-- Base de datos persistente (PostgreSQL) para producción
-- Deploy (backend en Railway/Render, frontend en Vercel/Netlify)
+- Base de datos persistente (PostgreSQL) para que usuarios y pedidos sobrevivan a un redeploy
+- Reviews/ratings de productos y wishlist
+- Tests E2E (Cypress) y tests de frontend (Jest/Vitest + Testing Library)
+- Configurar auto-deploy confiable en Render (actualmente a veces requiere Manual Deploy)
 
 ## Licencia
 

@@ -36,7 +36,7 @@ java -jar target/deporshop-api-1.0.0.jar
 mvn test
 ```
 
-36 tests: unitarios de servicios (`ProductoService`, `CategoriaService`, `UsuarioService`) y de `JwtTokenProvider` con Mockito, más un test de integración full-stack (`AuthControllerIntegrationTest`, contexto Spring real + MockMvc) que cubre el contrato exacto de `/api/auth/register` y `/api/auth/login` consumido por el frontend.
+48 tests: unitarios de servicios (`ProductoService`, `CategoriaService`, `UsuarioService`, `PedidoService`) y de `JwtTokenProvider` con Mockito, más tests de integración full-stack (`AuthControllerIntegrationTest`, `PedidoControllerIntegrationTest` — contexto Spring real + MockMvc) que cubren el contrato exacto que consume el frontend.
 
 > Nota de entorno: si corrés en un JDK muy nuevo (25+), Mockito puede fallar al instrumentar clases concretas con el mock maker "inline" por defecto. El repo ya incluye `src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker` forzando el mock maker "subclass", que evita el problema.
 
@@ -119,6 +119,16 @@ El token expira a las 24hs (`jwt.expiration-ms` en `application.properties`), fi
 | DELETE | `/api/carrito/limpiar` | Vaciar carrito |
 | GET | `/api/carrito/total` | Total del carrito |
 
+### Pedidos (requiere JWT)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/pedidos` | Crea un pedido a partir de `{ items: [{ productoId, cantidad }] }` |
+| GET | `/api/pedidos/mis-pedidos` | Historial del usuario autenticado, más reciente primero |
+| GET | `/api/pedidos/{id}` | Un pedido puntual — `403` si no es del usuario autenticado |
+
+El precio de cada item **se recalcula siempre en el servidor** a partir del `Producto` actual (nunca se usa el precio que mande el cliente). El endpoint no depende del carrito de sesión: el frontend manda los items desde su propio estado (Zustand + localStorage), porque el carrito de sesión HTTP no persiste de forma confiable en una SPA cross-origin. Carrito vacío/sin items → `400`. Producto inexistente → `404`.
+
 ## Manejo de errores
 
 Todas las respuestas de error siguen esta forma (`exception/GlobalExceptionHandler.java`):
@@ -131,9 +141,10 @@ Los errores de validación (`@Valid`) además incluyen `fieldErrors` con el deta
 
 ## Base de datos
 
-H2 en memoria (`spring.jpa.hibernate.ddl-auto=create-drop`). Los datos se recrean en cada arranque con 3 categorías y 6 productos de ejemplo (`config/DataLoader.java`) y se pierden al reiniciar. Para producción, cambiar a una base persistente (PostgreSQL, MySQL) en `application.properties`.
+H2 en memoria (`spring.jpa.hibernate.ddl-auto=create-drop`). Los datos se recrean en cada arranque con 3 categorías y 6 productos de ejemplo (`config/DataLoader.java`, precios en ARS) y **se pierden al reiniciar o redeployar** — incluyendo usuarios registrados y pedidos. Un JWT emitido antes de un restart sigue siendo válido (la firma no cambia), pero cualquier endpoint que busque al usuario por email va a devolver `404 Usuario no encontrado` hasta que se vuelva a registrar. Para producción real, cambiar a una base persistente (PostgreSQL, MySQL) en `application.properties`.
 
 ## Notas
 
-- CORS habilitado para `localhost:5173` (Vite) y `localhost:3000`, más wildcard para desarrollo.
+- CORS: orígenes permitidos configurables vía `CORS_ALLOWED_ORIGINS` (variable de entorno, coma-separada), default `http://localhost:5173,http://localhost:3000`. Ver `app.cors.allowed-origins` en `application.properties` y `SecurityConfig`.
+- `JWT_SECRET` también es variable de entorno (con default solo para dev local — no reusar ese default si el repo es público).
 - Los campos `precio`, `stock`, etc. en `Producto`/`Categoria` tienen validación `@Positive`/`@NotBlank`: un `PUT` que omita esos campos ahora es rechazado con `400` en vez de conservar el valor anterior silenciosamente.

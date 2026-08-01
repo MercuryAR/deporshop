@@ -64,12 +64,14 @@ Las rutas protegidas usan `components/ProtectedRoute.tsx`, que redirige a `/logi
 ## Estado global (Zustand)
 
 - **`productStore`** — catálogo, categorías, filtros (categoría/búsqueda) y orden (precio, nombre, rating).
-- **`cartStore`** — ítems del carrito, sincronizado contra `/api/carrito` del backend; expone `formatearPrecio` (formato ARS).
+- **`cartStore`** — ítems del carrito, actualizado a partir de la respuesta de cada mutación (`agregar`/`actualizar`/`eliminar`/`limpiar` contra `/api/carrito`) y persistido en `localStorage`. A propósito **no** se re-sincroniza automáticamente contra el backend en cada carga de página: el carrito vive en la sesión HTTP del servidor, que no persiste de forma confiable entre recargas en una SPA cross-origin, así que el estado local (localStorage) es la fuente de verdad.
 - **`authStore`** — usuario, token JWT y `isAuthenticated`, persistido en `localStorage`. El token se inyecta automáticamente en cada request saliente vía interceptor de axios (`services/api.ts`).
+
+`services/api.ts` también expone `formatearPrecio` (formato ARS), `crearPedido(items)` y `getMisPedidos()` — el checkout arma el pedido con los items del `cartStore` local (no del carrito de sesión), y el backend recalcula los precios reales.
 
 ## Estilos
 
-Tailwind CSS con la paleta de marca original: gris `#1F2937` (primario) y rosa `#EC4899` (acento), tipografía Inter + Caveat (Google Fonts). Configuración en `tailwind.config.js`.
+Tailwind CSS con la paleta de marca: gris `#1F2937` (primario) y naranja `#EA580C` (acento), tipografía Inter + Caveat (Google Fonts). Configuración en `tailwind.config.js` — cambiar el color ahí se propaga a todo el sitio vía las utilidades `accent`/`accent-light` de Tailwind.
 
 ## Notas
 

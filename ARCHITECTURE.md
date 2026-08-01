@@ -37,6 +37,12 @@ Los endpoints de catálogo (`Producto`, `Categoria`) siguen serializando la enti
 
 **Trade-off explícito**: los endpoints de catálogo (`/api/productos/**`, `/api/categorias/**`, `/api/carrito/**`) quedaron públicos en `SecurityConfig` para no romper el comportamiento existente al introducir auth. En una API de producción real, mutaciones (`POST`/`PUT`/`DELETE`) sobre productos deberían requerir rol de administrador — hoy no hay modelo de roles, solo autenticado/no-autenticado.
 
+### Pedidos: el cliente manda los items, el servidor manda los precios
+
+`POST /api/pedidos` no lee del carrito de sesión (`CarritoService`, `@SessionScope`) — recibe los items directamente en el body del request (`{ items: [{ productoId, cantidad }] }`) y **recalcula el precio de cada uno desde el `Producto` real** antes de guardar el pedido. Esto no fue el diseño original: la primera versión sí armaba el pedido a partir del carrito de sesión, pero al probar el flujo completo en un navegador real (frontend en `:5173`, backend en `:8080`, dos orígenes distintos) la cookie de sesión no persistía de forma confiable entre recargas de página — el carrito aparecía vacío después de cualquier navegación completa, aunque el `Set-Cookie` del backend era correcto. En producción (dominios distintos) el problema es peor: cookies cross-site con `SameSite` por default directamente no se envían sin `SameSite=None; Secure`.
+
+En vez de pelear con cookies cross-origin para una operación que involucra dinero, se movió la fuente de verdad al cliente (el `cartStore` de Zustand, persistido en `localStorage`, ya es confiable) y se blindó el servidor para no confiar en los precios que manda ese cliente. Es el patrón más común en APIs REST reales: el front dice *qué* quiere comprar, el back decide *cuánto* cuesta.
+
 ### Manejo de errores centralizado
 
 `GlobalExceptionHandler` (`@RestControllerAdvice`) traduce excepciones a una forma de respuesta consistente (`{status, error, timestamp}`, con `fieldErrors` en validaciones) en vez de dejar que cada controller maneje sus propios try/catch. Las excepciones de dominio (`EmailYaRegistradoException`, `CredencialesInvalidasException`) son tipos propios en vez de `RuntimeException` genérica, para poder mapear cada una a su status HTTP correcto (400 vs 401) sin inspeccionar mensajes de texto.
@@ -47,7 +53,7 @@ Los endpoints de catálogo (`Producto`, `Categoria`) siguen serializando la enti
 
 Tres stores independientes (`productStore`, `cartStore`, `authStore`) en vez de un store monolítico. Zustand se eligió sobre Redux por menos boilerplate (no hay actions/reducers/slices separados) y sobre Context API porque Context re-renderiza todos los consumidores en cada cambio — con tres dominios de estado que cambian a ritmos distintos (productos se filtran seguido, auth casi nunca), stores separados evitan renders innecesarios.
 
-`cartStore` y `authStore` persisten a `localStorage` (carrito y sesión sobreviven a un refresh); `productStore` no persiste — el catálogo se vuelve a pedir en cada carga, que es lo correcto para datos que cambian del lado del servidor.
+`cartStore` y `authStore` persisten a `localStorage` (carrito y sesión sobreviven a un refresh); `productStore` no persiste — el catálogo se vuelve a pedir en cada carga, que es lo correcto para datos que cambian del lado del servidor. `cartStore` en particular actualiza su estado a partir de la respuesta de cada mutación (agregar/actualizar/eliminar), pero a propósito no hace un fetch de sincronización contra `/api/carrito` en cada carga de página — ese fetch existía en una versión anterior (en `Header` y en la página `Cart`) y terminaba pisando el estado local correcto con un carrito de sesión vacío, por la misma razón de cookies cross-origin que se explica más arriba, en "Pedidos".
 
 ### Cliente API: una función tipada por endpoint, no un wrapper genérico
 
@@ -61,4 +67,4 @@ El token JWT se inyecta vía interceptor de request de axios (lee `authStore.get
 
 ## Decisión pendiente: persistencia
 
-H2 en memoria fue una decisión consciente para desarrollo/demo (cero setup, datos de ejemplo se recargan solos), pero es la limitación más visible del proyecto tal como está: **los datos no sobreviven un restart**, y no hay gestión de pedidos todavía (ver README raíz, sección "Próximos pasos"). Migrar a PostgreSQL es directo — solo cambia `application.properties` y se agregarían migraciones (Flyway) — pero implica decidir dónde hostear la base para el deploy.
+H2 en memoria fue una decisión consciente para desarrollo/demo (cero setup, datos de ejemplo se recargan solos), pero es la limitación más visible del proyecto en producción: **cada redeploy de Render recrea la base vacía** (`ddl-auto=create-drop`), lo que borra todos los usuarios y pedidos existentes. El síntoma concreto, visto en la demo en vivo: un usuario logueado *antes* de un redeploy sigue teniendo un JWT válido (la firma no depende de la base), pero al intentar comprar el backend responde `404 Usuario no encontrado`, porque ese usuario ya no existe en la base recién creada. La única forma de notarlo es probando el flujo end-to-end después de cada deploy — no aparece en ningún log de error del build. Migrar a PostgreSQL resolvería esto de raíz: es un cambio directo en `application.properties` (más migraciones con Flyway), pero implica decidir dónde hostear la base.
